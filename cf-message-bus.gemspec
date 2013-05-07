@@ -17,4 +17,9 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency "bundler", "~> 1.3"
   gem.add_dependency "nats", "~> 0.4.24"
+  gem.add_dependency "yajl-ruby"
+  gem.add_dependency "eventmachine", "~> 1.0.0"
+  gem.add_dependency "vcap-concurrency" # in the gemfile
+  gem.add_dependency "steno", "~> 1.0.0"
+
 end
