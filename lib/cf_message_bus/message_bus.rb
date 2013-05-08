@@ -6,15 +6,37 @@ require "steno"
 module CfMessageBus
   class MessageBus
     class << self
-      attr_reader :instance
+      def configure(config)
+        return @instance if @instance
 
-      def instance=(instance)
-        raise ArgumentError, "instance must not be nil" unless instance
-        @instance = instance
+        @instance = new(config)
+        @instance.register_components
+        @instance.register_routes
+
+        self
+      end
+
+      def publish(*args)
+        @instance.publish(*args)
+        self
+      end
+
+      def subscribe(*args)
+        @instance.subscribe(*args)
+        self
+      end
+
+      def config
+        p [:instance, @instance]
+
+        @instance.config
+        self
       end
     end
 
-    attr_reader :config, :nats, :subscriptions
+    private
+
+    attr_reader :subscriptions, :nats, :config
 
     def initialize(config)
       @config = config
@@ -83,15 +105,6 @@ module CfMessageBus
       end
     end
 
-    # Subscribe to a subject on the message bus.
-    # The provided block is called on a thread
-    #
-    # @params [String] subject the subject to subscribe to
-    # @params [Hash] opts nats subscribe options
-    #
-    # @yield [payload, inbox] callback invoked when a message is posted on the subject
-    # @yieldparam [String] payload the message posted on the channel
-    # @yieldparam [optional, String] inbox an optional "reply to" subject, nil if not requested
     def subscribe(subject, opts = {}, &blk)
       @subscriptions[subject] = [opts, blk]
 
@@ -139,8 +152,6 @@ module CfMessageBus
 
       response
     end
-
-    private
 
     def register_cloud_controller
       @component.register(
