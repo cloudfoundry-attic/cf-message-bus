@@ -9,7 +9,7 @@ module CfMessageBus
     let(:bus_uri) { "some message bus uri" }
     let(:bus) { MessageBus.new(:uri => bus_uri, :logger => logger) }
     let(:msg) { {:foo => "bar"} }
-    let(:msg_json) { Yajl::Encoder.encode(msg) }
+    let(:msg_json) { JSON.dump(msg) }
     let(:logger) { double(:logger, :info => nil) }
 
     before do
@@ -55,6 +55,21 @@ module CfMessageBus
       it 'should publish on nats' do
         mock_nats.should_receive(:publish).with("foo", "bar")
         bus.publish('foo', 'bar')
+      end
+
+      it 'should pass a nil message straight through' do
+        mock_nats.should_receive(:publish).with("foo", nil)
+        bus.publish('foo')
+      end
+
+      it 'should dump objects to json' do
+        mock_nats.should_receive(:publish).with("foo", JSON.dump('foo' => 'bar'))
+        bus.publish('foo', {:foo => 'bar'})
+      end
+
+      it 'should dump arrays to json' do
+        mock_nats.should_receive(:publish).with("foo", JSON.dump(%w[foo bar baz]))
+        bus.publish('foo', %w[foo bar baz])
       end
     end
 

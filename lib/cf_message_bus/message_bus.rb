@@ -1,4 +1,3 @@
-require "yajl/json_gem"
 require "eventmachine"
 require "eventmachine/schedule_sync"
 require "steno"
@@ -28,6 +27,10 @@ module CfMessageBus
     end
 
     def publish(subject, message = nil)
+      unless message.nil? || message.is_a?(String)
+        message = JSON.dump(message)
+      end
+
       EM.schedule do
         internal_bus.publish(subject, message)
       end
@@ -87,7 +90,7 @@ module CfMessageBus
     end
 
     def process_message(msg, inbox, &blk)
-      payload = Yajl::Parser.parse(msg, :symbolize_keys => true)
+      payload = JSON.parse(msg, :symbolize_keys => true)
       blk.yield(payload, inbox)
     rescue => e
       @logger.error "exception parsing json: '#{msg}' '#{e}'"
