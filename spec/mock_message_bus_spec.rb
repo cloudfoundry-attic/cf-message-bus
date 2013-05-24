@@ -53,5 +53,23 @@ module CfMessageBus
       bus.respond_to_request('hey guys', { 'foo' => 'bar' })
       expect(received_data).to eql({ foo: 'bar' })
     end
+
+    it 'should allow unsubscribing from requests' do
+      request_id = bus.request('hey guys') do |data|
+        raise 'do not call'
+      end
+
+      bus.unsubscribe(request_id)
+      bus.respond_to_request('hey guys', 'foo')
+    end
+
+    it 'should allow unsubscribing from subscriptions' do
+      subscription_id = bus.subscribe('hiya') do
+        raise 'do not call'
+      end
+
+      bus.unsubscribe(subscription_id)
+      bus.publish('hiya')
+    end
   end
 end

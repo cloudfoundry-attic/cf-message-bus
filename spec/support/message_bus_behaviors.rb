@@ -42,5 +42,9 @@ shared_examples :a_message_bus do
     it 'should be able to send a message with options that expects a response' do
       message_bus.request('initial_subject', 'some data', {:some_opts => 'hi'})
     end
+
+    it 'should be able to unsubscribe' do
+      message_bus.unsubscribe('subscription id')
+    end
   end
 end

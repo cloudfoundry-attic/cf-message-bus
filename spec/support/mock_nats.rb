@@ -23,6 +23,9 @@ module CfMessageBus
     def timeout(*args)
     end
 
+    def unsubscribe(*args)
+    end
+
     def reconnect!
       Array(@reconnect_callbacks).each { |callback| callback.call }
     end

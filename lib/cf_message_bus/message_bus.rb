@@ -64,6 +64,10 @@ module CfMessageBus
       response
     end
 
+    def unsubscribe(subscription_id)
+      internal_bus.unsubscribe(subscription_id)
+    end
+
     private
 
     attr_reader :internal_bus

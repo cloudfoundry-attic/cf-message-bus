@@ -105,6 +105,13 @@ module CfMessageBus
       end
     end
 
+    context 'unsubscribing' do
+      it 'should unsubscribe from the underlying message bus' do
+        mock_nats.should_receive(:unsubscribe).with('sub id')
+        bus.unsubscribe('sub id')
+      end
+    end
+
     context 'after nats comes back up' do
       it 'should resubscribe' do
         bus.subscribe("first")
