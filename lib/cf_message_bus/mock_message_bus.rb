@@ -14,5 +14,8 @@ module CfMessageBus
         subscription.call(message)
       end
     end
+
+    def request(subject, data=nil, opts={})
+    end
   end
 end

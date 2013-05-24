@@ -30,5 +30,17 @@ shared_examples :a_message_bus do
     it 'should be able to publish without a message' do
       message_bus.publish('stuff')
     end
+
+    it 'should be able to send a message that expects a response' do
+      message_bus.request('initial_subject', 'some data')
+    end
+
+    it 'should be able to send a message with no data that expects a response' do
+      message_bus.request('initial_subject')
+    end
+
+    it 'should be able to send a message with options that expects a response' do
+      message_bus.request('initial_subject', 'some data', {:some_opts => 'hi'})
+    end
   end
 end

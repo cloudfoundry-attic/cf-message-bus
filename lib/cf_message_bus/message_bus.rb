@@ -40,6 +40,30 @@ module CfMessageBus
       @recovery_callback = block
     end
 
+    def request(subject, data = nil, opts = {})
+      result_count = opts[:result_count] || 1
+      timeout = opts[:timeout] || -1
+
+      return [] if result_count <= 0
+
+      response = EM.schedule_sync do |promise|
+        results = []
+
+        sid = internal_bus.request(subject, data, max: result_count) do |msg|
+          results << msg
+          promise.deliver(results) if results.size == result_count
+        end
+
+        if timeout >= 0
+          internal_bus.timeout(sid, timeout, expected: result_count) do
+            promise.deliver(results)
+          end
+        end
+      end
+
+      response
+    end
+
     private
 
     attr_reader :internal_bus
@@ -57,30 +81,6 @@ module CfMessageBus
       end
     end
 
-    def request(subject, data = nil, opts = {})
-      expected = opts[:expected] || 1
-      timeout = opts[:timeout] || -1
-
-      return [] if expected <= 0
-
-      response = EM.schedule_sync do |promise|
-        results = []
-
-        sid = internal_bus.request(subject, data, :max => expected) do |msg|
-          results << msg
-          promise.deliver(results) if results.size == expected
-        end
-
-        if timeout >= 0
-          internal_bus.timeout(sid, timeout, :expected => expected) do
-            promise.deliver(results)
-          end
-        end
-      end
-
-      response
-    end
-
     def subscribe_on_reactor(subject, opts = {}, &blk)
       EM.schedule do
         internal_bus.subscribe(subject, opts) do |msg, inbox|
@@ -90,7 +90,7 @@ module CfMessageBus
     end
 
     def process_message(msg, inbox, &blk)
-      payload = JSON.parse(msg, :symbolize_keys => true)
+      payload = JSON.parse(msg, symbolize_keys: true)
       blk.yield(payload, inbox)
     rescue => e
       @logger.error "exception parsing json: '#{msg}' '#{e}'"

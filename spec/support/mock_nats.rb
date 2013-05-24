@@ -17,6 +17,12 @@ module CfMessageBus
       (@reconnect_callbacks ||= []) << blk
     end
 
+    def request(*args)
+    end
+
+    def timeout(*args)
+    end
+
     def reconnect!
       Array(@reconnect_callbacks).each { |callback| callback.call }
     end

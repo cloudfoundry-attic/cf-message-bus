@@ -7,15 +7,17 @@ module CfMessageBus
   describe MessageBus do
     let(:mock_nats) { MockNATS.new }
     let(:bus_uri) { "some message bus uri" }
-    let(:bus) { MessageBus.new(:uri => bus_uri, :logger => logger) }
-    let(:msg) { {:foo => "bar"} }
+    let(:bus) { MessageBus.new(uri: bus_uri, logger: logger) }
+    let(:msg) { {foo: "bar"} }
     let(:msg_json) { JSON.dump(msg) }
-    let(:logger) { double(:logger, :info => nil) }
+    let(:logger) { double(:logger, info: nil) }
+    let(:fake_promise) { double(:promise) }
 
     before do
       MessageBusFactory.stub(:message_bus).with(bus_uri).and_return(mock_nats)
       EM.stub(:schedule).and_yield
       EM.stub(:defer).and_yield
+      EM.stub(:schedule_sync).and_yield(fake_promise)
       bus.stub(:register_cloud_controller)
     end
 
@@ -23,10 +25,10 @@ module CfMessageBus
 
     it 'should get the internal message bus from the factory' do
       MessageBusFactory.should_receive(:message_bus).with(bus_uri).and_return(mock_nats)
-      MessageBus.new(:uri => bus_uri)
+      MessageBus.new(uri: bus_uri)
     end
 
-    describe "subscribing" do
+    describe 'subscribing' do
       it 'should subscribe on nats' do
         mock_nats.should_receive(:subscribe).with("foo", {}).and_yield(msg_json, nil)
         bus.subscribe("foo") do |data, inbox|
@@ -51,7 +53,7 @@ module CfMessageBus
       end
     end
 
-    describe "publishing" do
+    describe 'publishing' do
       it 'should publish on nats' do
         mock_nats.should_receive(:publish).with("foo", "bar")
         bus.publish('foo', 'bar')
@@ -64,7 +66,7 @@ module CfMessageBus
 
       it 'should dump objects to json' do
         mock_nats.should_receive(:publish).with("foo", JSON.dump('foo' => 'bar'))
-        bus.publish('foo', {:foo => 'bar'})
+        bus.publish('foo', {foo: 'bar'})
       end
 
       it 'should dump arrays to json' do
@@ -73,7 +75,37 @@ module CfMessageBus
       end
     end
 
-    context "after nats comes back up" do
+    context 'requesting information over the message bus' do
+      it 'should schedule onto the EM loop to make the request' do
+        EM.should_receive(:schedule_sync).and_yield(fake_promise)
+        mock_nats.should_receive(:request).with('foo', 'bar', max: 1)
+        bus.request('foo', 'bar')
+      end
+
+      it 'should deliver the promise' do
+        mock_nats.stub(:request).and_yield('foo')
+        fake_promise.should_receive(:deliver).with(%w[foo])
+        bus.request('foo')
+      end
+
+      it 'should wait to deliver the promise if multiple results are expected' do
+        mock_nats.should_receive(:request).with('foo', nil, max: 3).and_yield('foo').and_yield('bar').and_yield('baz')
+        fake_promise.should_receive(:deliver).with(%w[foo bar baz])
+        bus.request('foo', nil, result_count: 3)
+      end
+
+      it 'should timeout the request even if we have not gotted all the results' do
+        request_stub = mock_nats.stub(:request)
+        request_stub.and_return('request_id')
+        request_stub.and_yield('foo').and_yield('bar')
+        mock_nats.should_receive(:timeout).with('request_id', 5, expected: 3).and_yield
+
+        fake_promise.should_receive(:deliver).with(%w[foo bar])
+        bus.request('foo', nil, result_count: 3, timeout: 5)
+      end
+    end
+
+    context 'after nats comes back up' do
       it 'should resubscribe' do
         bus.subscribe("first")
         bus.subscribe("second")
@@ -87,7 +119,7 @@ module CfMessageBus
       end
 
       it 'should call the recovery callbacks' do
-        callback = double(:called => true)
+        callback = double(called: true)
         callback.should_receive(:called)
         bus.recover do
           callback.called
