@@ -71,5 +71,18 @@ module CfMessageBus
       bus.unsubscribe(subscription_id)
       bus.publish('hiya')
     end
+
+    it 'should call subscribers when requesting data' do
+      received_data = nil
+
+      bus.subscribe("foo") do |data|
+        received_data = data
+      end
+      expect(received_data).to be_nil
+
+      publish_data = 'bar'
+      bus.request("foo", publish_data)
+      expect(received_data).to eql(publish_data)
+    end
   end
 end

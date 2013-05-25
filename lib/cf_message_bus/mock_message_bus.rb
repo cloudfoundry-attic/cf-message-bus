@@ -2,7 +2,7 @@ module CfMessageBus
   class MockMessageBus
     def initialize(config = {})
       @logger = config[:logger]
-      @subscriptions = Hash.new{|hash, key| hash[key] = []}
+      @subscriptions = Hash.new { |hash, key| hash[key] = [] }
       @requests = {}
     end
 
@@ -19,6 +19,7 @@ module CfMessageBus
 
     def request(subject, data=nil, opts={}, &blk)
       @requests[subject] = blk
+      publish(subject, data)
       subject
     end
 
@@ -28,7 +29,7 @@ module CfMessageBus
     end
 
     def respond_to_request(request_subject, data)
-      block = @requests.fetch(request_subject) { lambda {|data| nil} }
+      block = @requests.fetch(request_subject) { lambda { |data| nil } }
       block.call(symbolize_keys(data))
     end
 

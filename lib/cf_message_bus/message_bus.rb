@@ -1,6 +1,5 @@
 require "eventmachine"
 require "eventmachine/schedule_sync"
-require "steno"
 
 module CfMessageBus
   class MessageBus
@@ -27,12 +26,8 @@ module CfMessageBus
     end
 
     def publish(subject, message = nil)
-      unless message.nil? || message.is_a?(String)
-        message = JSON.dump(message)
-      end
-
       EM.schedule do
-        internal_bus.publish(subject, message)
+        internal_bus.publish(subject, encode(message))
       end
     end
 
@@ -49,8 +44,10 @@ module CfMessageBus
       response = EM.schedule_sync do |promise|
         results = []
 
-        sid = internal_bus.request(subject, data, max: result_count) do |msg|
-          results << msg
+        sid = internal_bus.request(subject, encode(data), max: result_count) do |msg|
+          process_message(msg, nil) do |data, _|
+            results << data
+          end
           promise.deliver(results) if results.size == result_count
         end
 
@@ -97,7 +94,14 @@ module CfMessageBus
       payload = JSON.parse(msg, symbolize_keys: true)
       blk.yield(payload, inbox)
     rescue => e
-      @logger.error "exception parsing json: '#{msg}' '#{e}'"
+      @logger.error "exception parsing json: '#{msg}' '#{e.inspect}'"
+    end
+
+    def encode(message)
+      unless message.nil? || message.is_a?(String)
+        message = JSON.dump(message)
+      end
+      message
     end
   end
 end
