@@ -17,10 +17,13 @@ module CfMessageBus
       end
     end
 
-    def request(subject, data=nil, opts={}, &blk)
+    def request(subject, data=nil, options={}, &blk)
       @requests[subject] = blk
       publish(subject, data)
       subject
+    end
+
+    def synchronous_request(subject, data=nil, options={})
     end
 
     def unsubscribe(subscription_id)

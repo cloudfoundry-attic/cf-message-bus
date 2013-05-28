@@ -58,7 +58,6 @@ module CfMessageBus
         bus.subscribe("foo") do |data, inbox|
           expect(data).to be_nil
         end
-
       end
     end
 
@@ -84,46 +83,95 @@ module CfMessageBus
       end
     end
 
-    context 'requesting information over the message bus' do
+
+    describe 'requesting information' do
+      it 'should request on nats and parse json' do
+        mock_nats.should_receive(:request).with("foo", nil, {}).and_yield(msg_json, nil)
+        bus.request("foo") do |data, _|
+          data.should == msg
+        end
+      end
+
+      it 'should handle exceptions in the callback' do
+        mock_nats.should_receive(:request).with("foo", nil, {}).and_yield(msg_json, nil)
+        logger.should_receive(:error).with(/^exception processing response for: 'foo'/)
+        bus.request("foo") do |data, inbox|
+          raise 'hey guys'
+        end
+      end
+
+      it 'should handle exceptions in json' do
+        mock_nats.should_receive(:request).with("foo", nil, {}).and_yield("not json", nil)
+        logger.should_receive(:error).with(/^exception parsing json: 'not json'/)
+        bus.request("foo") do |data, inbox|
+          raise 'hey guys'
+        end
+      end
+
+      it 'should parse nulls correctly' do
+        mock_nats.should_receive(:request).with("foo", nil, {}).and_yield("null", nil)
+        logger.should_not_receive(:error)
+        bus.request("foo") do |data, inbox|
+          expect(data).to be_nil
+        end
+      end
+
+      it 'should pass a nil message straight through' do
+        mock_nats.should_receive(:request).with("foo", nil, {})
+        bus.request('foo')
+      end
+
+      it 'should dump objects to json' do
+        mock_nats.should_receive(:request).with("foo", JSON.dump('foo' => 'bar'), {})
+        bus.request('foo', { foo: 'bar' })
+      end
+
+      it 'should dump arrays to json' do
+        mock_nats.should_receive(:request).with("foo", JSON.dump(%w[foo bar baz]), {})
+        bus.request('foo', %w[foo bar baz])
+      end
+    end
+
+    describe 'requesting information synchronously' do
       let(:msg2) { { baz: 'quux'} }
       let(:msg2_json) { JSON.dump(msg2) }
       it 'should schedule onto the EM loop to make the request' do
         EM.should_receive(:schedule_sync).and_yield(fake_promise)
         mock_nats.should_receive(:request).with('foo', msg_json, max: 1)
-        bus.request('foo', msg)
+        bus.synchronous_request('foo', msg)
       end
 
       it 'should deliver the promise' do
-        mock_nats.stub(:request).and_yield(msg_json)
+        mock_nats.stub(:request).and_yield(msg_json, nil)
         fake_promise.should_receive(:deliver).with([msg])
-        bus.request('foo')
+        bus.synchronous_request('foo')
       end
 
       it 'should dump objects to json' do
         mock_nats.should_receive(:request).with('foo', msg_json, max: 1)
-        bus.request('foo', foo: 'bar')
+        bus.synchronous_request('foo', foo: 'bar')
       end
 
       it 'should parse json into objects' do
-        mock_nats.should_receive(:request).with('foo', nil, max: 1).and_yield(msg_json)
+        mock_nats.should_receive(:request).with('foo', nil, max: 1).and_yield(msg_json, nil)
         fake_promise.should_receive(:deliver).with([{ foo: 'bar' }])
-        bus.request('foo', nil)
+        bus.synchronous_request('foo', nil)
       end
 
       it 'should wait to deliver the promise if multiple results are expected' do
-        mock_nats.should_receive(:request).with('foo', nil, max: 2).and_yield(msg_json).and_yield(msg2_json)
+        mock_nats.should_receive(:request).with('foo', nil, max: 2).and_yield(msg_json, nil).and_yield(msg2_json, nil)
         fake_promise.should_receive(:deliver).with([msg, {baz: 'quux'}])
-        bus.request('foo', nil, result_count: 2)
+        bus.synchronous_request('foo', nil, result_count: 2)
       end
 
-      it 'should timeout the request even if we have not gotted all the results' do
+      it 'should timeout the request even if we have not gotten all the results' do
         request_stub = mock_nats.stub(:request)
         request_stub.and_return('request_id')
-        request_stub.and_yield(msg_json).and_yield(msg2_json)
+        request_stub.and_yield(msg_json, nil).and_yield(msg2_json, nil)
         mock_nats.should_receive(:timeout).with('request_id', 5, expected: 3).and_yield
 
         fake_promise.should_receive(:deliver).with([msg, msg2])
-        bus.request('foo', nil, result_count: 3, timeout: 5)
+        bus.synchronous_request('foo', nil, result_count: 3, timeout: 5)
       end
     end
 

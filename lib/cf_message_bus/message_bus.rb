@@ -19,7 +19,7 @@ module CfMessageBus
           begin
             blk.yield(payload, inbox)
           rescue => e
-            @logger.error "exception processing: '#{subject}' '#{payload}'"
+            @logger.error "exception processing: '#{subject}' '#{payload.inspect}' \n#{e.inspect}\n #{e.backtrace.join("\n")}"
           end
         end
       end
@@ -35,7 +35,19 @@ module CfMessageBus
       @recovery_callback = block
     end
 
-    def request(subject, data = nil, opts = {})
+    def request(subject, data = nil, options = {}, &block)
+      internal_bus.request(subject, encode(data), options) do |payload, inbox|
+        process_message(payload, inbox) do |parsed_data, inbox|
+          begin
+            block.yield(parsed_data, inbox)
+          rescue => e
+            @logger.error "exception processing response for: '#{subject}' '#{parsed_data.inspect}' \n#{e.inspect}\n #{e.backtrace.join("\n")}"
+          end
+        end
+      end
+    end
+
+    def synchronous_request(subject, data = nil, opts = {})
       result_count = opts[:result_count] || 1
       timeout = opts[:timeout] || -1
 
@@ -44,10 +56,8 @@ module CfMessageBus
       response = EM.schedule_sync do |promise|
         results = []
 
-        sid = internal_bus.request(subject, encode(data), max: result_count) do |msg|
-          process_message(msg, nil) do |data, _|
-            results << data
-          end
+        sid = request(subject, encode(data), max: result_count) do |data|
+          results << data
           promise.deliver(results) if results.size == result_count
         end
 
