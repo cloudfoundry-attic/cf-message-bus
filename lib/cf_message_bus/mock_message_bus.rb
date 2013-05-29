@@ -41,7 +41,7 @@ module CfMessageBus
     end
 
     def do_recovery
-      @recovery.call
+      @recovery.call if @recovery
     end
 
     private
