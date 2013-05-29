@@ -2,6 +2,8 @@ require "eventmachine"
 require "eventmachine/schedule_sync"
 
 module CfMessageBus
+  class Error < StandardError; end
+
   class MessageBus
     def initialize(config)
       @logger = config[:logger]
@@ -100,11 +102,12 @@ module CfMessageBus
       end
     end
 
-    def process_message(msg, inbox, &blk)
+    def process_message(msg, inbox, &block)
       payload = JSON.parse(msg, symbolize_keys: true)
-      blk.yield(payload, inbox)
+      block.yield(payload, inbox)
     rescue => e
       @logger.error "exception parsing json: '#{msg}' '#{e.inspect}'"
+      block.yield({error: "JSON Parse Error: failed to parse", exception: e, message: msg}, inbox)
     end
 
     def encode(message)
