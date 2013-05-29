@@ -48,7 +48,7 @@ module CfMessageBus
         mock_nats.should_receive(:subscribe).with("foo", {}).and_yield("not json", nil)
         logger.should_receive(:error).with(/^exception parsing json: 'not json'/)
         bus.subscribe("foo") do |data, inbox|
-          raise 'hey guys'
+          data[:error].should == "JSON Parse Error: failed to parse"
         end
       end
 
@@ -104,7 +104,7 @@ module CfMessageBus
         mock_nats.should_receive(:request).with("foo", nil, {}).and_yield("not json", nil)
         logger.should_receive(:error).with(/^exception parsing json: 'not json'/)
         bus.request("foo") do |data, inbox|
-          raise 'hey guys'
+          data[:error].should == "JSON Parse Error: failed to parse"
         end
       end
 
