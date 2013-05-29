@@ -31,9 +31,17 @@ module CfMessageBus
       @requests.delete(subscription_id)
     end
 
+    def recover(&block)
+      @recovery = block
+    end
+
     def respond_to_request(request_subject, data)
       block = @requests.fetch(request_subject) { lambda { |data| nil } }
       block.call(symbolize_keys(data))
+    end
+
+    def do_recovery
+      @recovery.call
     end
 
     private

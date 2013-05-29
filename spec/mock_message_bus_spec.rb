@@ -84,5 +84,16 @@ module CfMessageBus
       bus.request("foo", publish_data)
       expect(received_data).to eql(publish_data)
     end
+
+    it 'should kick off recovery' do
+      called = false
+      bus.recover do
+        called = true
+      end
+      expect(called).to be_false
+
+      bus.do_recovery
+      expect(called).to be_true
+    end
   end
 end

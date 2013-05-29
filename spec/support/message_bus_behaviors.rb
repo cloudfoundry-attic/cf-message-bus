@@ -58,5 +58,11 @@ shared_examples :a_message_bus do
     it 'should be able to unsubscribe' do
       message_bus.unsubscribe('subscription id')
     end
+
+    it 'should be able to recover' do
+      message_bus.recover do
+        raise "not actually called here"
+      end
+    end
   end
 end
