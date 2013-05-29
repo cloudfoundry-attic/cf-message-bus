@@ -81,6 +81,15 @@ module CfMessageBus
         mock_nats.should_receive(:publish).with("foo", JSON.dump(%w[foo bar baz]))
         bus.publish('foo', %w[foo bar baz])
       end
+
+      it 'passes the callback through to nats' do
+        mock_nats.should_receive(:publish).with("foo", JSON.dump(%w[foo bar baz])).and_yield
+        called = false
+        bus.publish('foo', %w[foo bar baz]) do
+          called = true
+        end
+        expect(called).to be_true
+      end
     end
 
 

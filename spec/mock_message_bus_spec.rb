@@ -20,6 +20,14 @@ module CfMessageBus
       expect(received_data).to eql(publish_data)
     end
 
+    it 'should call publish callbacks' do
+      called = false
+      bus.publish("foo") do
+        called = true
+      end
+      expect(called).to be_true
+    end
+
     it 'should symbolize keys to the subscriber' do
       received_data = nil
 

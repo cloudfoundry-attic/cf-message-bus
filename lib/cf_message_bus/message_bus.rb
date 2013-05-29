@@ -1,5 +1,6 @@
 require "eventmachine"
 require "eventmachine/schedule_sync"
+require "cf_message_bus/message_bus_factory"
 
 module CfMessageBus
   class Error < StandardError; end
@@ -27,9 +28,9 @@ module CfMessageBus
       end
     end
 
-    def publish(subject, message = nil)
+    def publish(subject, message = nil, &callback)
       EM.schedule do
-        internal_bus.publish(subject, encode(message))
+        internal_bus.publish(subject, encode(message), &callback)
       end
     end
 

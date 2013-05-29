@@ -11,10 +11,12 @@ module CfMessageBus
       subject
     end
 
-    def publish(subject, message = nil)
+    def publish(subject, message = nil, &callback)
       @subscriptions[subject].each do |subscription|
         subscription.call(symbolize_keys(message))
       end
+
+      callback.call if callback
     end
 
     def request(subject, data=nil, options={}, &blk)
