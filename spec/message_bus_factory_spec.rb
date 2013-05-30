@@ -3,12 +3,13 @@ require "cf_message_bus/message_bus_factory"
 module CfMessageBus
   describe MessageBusFactory do
     let(:uri) { "nats://localhost:4222" }
+    let(:client) { double(:client) }
     subject(:get_bus) { MessageBusFactory.message_bus(uri) }
     before do
-      ::NATS.stub(:connect)
+      ::NATS.stub(:connect).and_return(client)
     end
 
-    it { should == ::NATS }
+    it { should == client }
 
     it 'should connect to the uri' do
       ::NATS.should_receive(:connect).with(hash_including(uri: uri))
