@@ -1,7 +1,7 @@
 require "cf_message_bus/message_bus"
 require "cf_message_bus/message_bus_factory"
-require_relative "support/message_bus_behaviors"
-require_relative "support/mock_nats"
+require "support/message_bus_behaviors"
+require "support/mock_nats"
 
 module CfMessageBus
   describe MessageBus do

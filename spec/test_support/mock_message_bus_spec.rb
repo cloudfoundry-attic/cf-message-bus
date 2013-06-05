@@ -1,5 +1,5 @@
-require 'cf_message_bus/mock_message_bus'
-require_relative 'support/message_bus_behaviors'
+require 'test_support/mock_message_bus'
+require 'support/message_bus_behaviors'
 
 module CfMessageBus
   describe MockMessageBus do
