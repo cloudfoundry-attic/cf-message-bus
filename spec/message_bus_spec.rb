@@ -38,7 +38,7 @@ module CfMessageBus
 
       it 'should handle exceptions in the callback' do
         mock_nats.should_receive(:subscribe).with("foo", {}).and_yield(msg_json, nil)
-        logger.should_receive(:error).with(/^exception processing: 'foo'/)
+        logger.should_receive(:error).with(/^exception processing subscription for: 'foo'/)
         bus.subscribe("foo") do |data, inbox|
           raise 'hey guys'
         end
