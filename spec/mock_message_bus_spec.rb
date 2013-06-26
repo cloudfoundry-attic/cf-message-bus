@@ -37,6 +37,28 @@ module CfMessageBus
       expect(bus.published_messages[1]).to eq({subject: "bar", message: {baz: :quux}, callback: monkey})
     end
 
+    it 'should clear published messages when asked' do
+      bus.publish("foo")
+      monkey = lambda { "I'm a monkey block" }
+      bus.publish("bar", {baz: :quux}, &monkey)
+
+      bus.clear_published_messages
+
+      expect(bus.published_messages).to be_empty
+    end
+
+    it 'should report if a particular subject has been published' do
+      bus.publish("foo")
+      expect(bus).to have_published("foo")
+      expect(bus).not_to have_published("bar")
+    end
+
+    it 'should report if a particular subject has been published with the specified message' do
+      bus.publish('foo', {bar: 'baz'})
+      expect(bus).to have_published_with_message('foo', {bar: 'baz'})
+      expect(bus).not_to have_published_with_message('foo', 'umbrella')
+    end
+
     it 'should symbolize keys to the subscriber' do
       received_data = nil
 
@@ -45,8 +67,8 @@ module CfMessageBus
       end
       expect(received_data).to be_nil
 
-      bus.publish("foo",  { 'foo' => 'bar', 'baz' => 'quux' })
-      expect(received_data).to eql({ foo: 'bar', baz: 'quux' })
+      bus.publish("foo", {'foo' => 'bar', 'baz' => 'quux'})
+      expect(received_data).to eql({foo: 'bar', baz: 'quux'})
     end
 
     it 'should respond to requests' do
@@ -67,8 +89,8 @@ module CfMessageBus
       end
       expect(received_data).to be_nil
 
-      bus.respond_to_request('hey guys', { 'foo' => 'bar' })
-      expect(received_data).to eql({ foo: 'bar' })
+      bus.respond_to_request('hey guys', {'foo' => 'bar'})
+      expect(received_data).to eql({foo: 'bar'})
     end
 
     it 'should allow unsubscribing from requests' do

@@ -53,6 +53,18 @@ module CfMessageBus
       @published_messages
     end
 
+    def clear_published_messages
+      @published_messages.clear
+    end
+
+    def has_published?(subject)
+      @published_messages.find { |message| message[:subject] == subject }
+    end
+
+    def has_published_with_message?(subject, message)
+      @published_messages.find { |publication| publication[:subject] == subject && publication[:message] == message }
+    end
+
     private
 
     def symbolize_keys(hash)
