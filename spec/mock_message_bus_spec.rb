@@ -28,6 +28,15 @@ module CfMessageBus
       expect(called).to be_true
     end
 
+    it 'should record published messages' do
+      bus.publish("foo")
+      monkey = lambda { "I'm a monkey block" }
+      bus.publish("bar", {baz: :quux}, &monkey)
+
+      expect(bus.published_messages[0]).to eq({subject: "foo", message: nil, callback: nil})
+      expect(bus.published_messages[1]).to eq({subject: "bar", message: {baz: :quux}, callback: monkey})
+    end
+
     it 'should symbolize keys to the subscriber' do
       received_data = nil
 

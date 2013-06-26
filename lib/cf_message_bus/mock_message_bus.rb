@@ -4,6 +4,7 @@ module CfMessageBus
       @logger = config[:logger]
       @subscriptions = Hash.new { |hash, key| hash[key] = [] }
       @requests = {}
+      @published_messages = []
     end
 
     def subscribe(subject, opts = {}, &blk)
@@ -15,6 +16,8 @@ module CfMessageBus
       @subscriptions[subject].each do |subscription|
         subscription.call(symbolize_keys(message))
       end
+
+      @published_messages.push({subject: subject, message: message, callback: callback})
 
       callback.call if callback
     end
@@ -44,6 +47,10 @@ module CfMessageBus
 
     def do_recovery
       @recovery.call if @recovery
+    end
+
+    def published_messages
+      @published_messages
     end
 
     private
