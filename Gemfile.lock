@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cf-message-bus (0.0.1)
+    cf-message-bus (0.0.2)
       eventmachine (~> 1.0.0)
       nats (= 0.4.26)
       vcap-concurrency

@@ -40,6 +40,10 @@ module CfMessageBus
       @recovery = block
     end
 
+    def connected?
+      true
+    end
+
     def respond_to_request(request_subject, data)
       block = @requests.fetch(request_subject) { lambda { |data| nil } }
       block.call(symbolize_keys(data))

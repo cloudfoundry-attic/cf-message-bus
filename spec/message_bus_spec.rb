@@ -233,5 +233,12 @@ module CfMessageBus
         mock_nats.reconnect!
       end
     end
+
+    context 'connected?' do
+      it 'should proxy to the internal bus' do
+        mock_nats.stub(:connected?).and_return(:something_else)
+        expect(bus.connected?).to eq(:something_else)
+      end
+    end
   end
 end

@@ -77,6 +77,10 @@ module CfMessageBus
       internal_bus.unsubscribe(subscription_id)
     end
 
+    def connected?
+      internal_bus.connected?
+    end
+
     private
 
     attr_reader :internal_bus
