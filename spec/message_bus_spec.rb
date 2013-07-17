@@ -92,7 +92,6 @@ module CfMessageBus
       end
     end
 
-
     describe 'requesting information' do
       it 'should request on nats and parse json' do
         mock_nats.should_receive(:request).with("foo", nil, {}).and_yield(msg_json, nil)
@@ -138,6 +137,26 @@ module CfMessageBus
       it 'should dump arrays to json' do
         mock_nats.should_receive(:request).with("foo", JSON.dump(%w[foo bar baz]), {})
         bus.request('foo', %w[foo bar baz])
+      end
+
+      it 'should handle timeouts' do
+        mock_nats.stub(:request).with('foo', nil, {}).and_return(:requesty)
+        mock_nats.should_receive(:timeout).with(:requesty, 10, expected: 1).and_yield
+        called = false
+        bus.request('foo', nil, timeout: 10) do |response|
+          called = true
+          expect(response[:timeout]).to be_true
+        end
+        expect(called).to be_true
+      end
+
+      it 'should handle errors in timeouts' do
+        mock_nats.stub(:request).with('foo', nil, {}).and_return(:requesty)
+        mock_nats.should_receive(:timeout).with(:requesty, 10, expected: 1).and_yield
+        logger.should_receive(:error).with(/^exception processing timeout for: 'foo'/)
+        bus.request('foo', nil, timeout: 10) do |response|
+          raise "oops"
+        end
       end
     end
 
