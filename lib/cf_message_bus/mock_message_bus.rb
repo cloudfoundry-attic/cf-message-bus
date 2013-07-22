@@ -71,11 +71,17 @@ module CfMessageBus
 
     private
 
-    def symbolize_keys(hash)
-      return hash unless hash.is_a?(Hash)
-      hash.inject({}) do |memo, (key, value)|
-        memo[key.to_sym] = symbolize_keys(value)
-        memo
+    def symbolize_keys(object)
+      case object
+      when Array
+        object.map {|k| symbolize_keys(k) }
+      when Hash
+        object.inject({}) do |memo, (key, value)|
+          memo[key.to_sym] = symbolize_keys(value)
+          memo
+        end
+      else
+        object
       end
     end
   end

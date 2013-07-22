@@ -67,8 +67,8 @@ module CfMessageBus
       end
       expect(received_data).to be_nil
 
-      bus.publish("foo", {'foo' => 'bar', 'baz' => 'quux'})
-      expect(received_data).to eql({foo: 'bar', baz: 'quux'})
+      bus.publish("foo", {'foo' => 'bar', 'baz' => [{'qu' => 'ux'}]})
+      expect(received_data).to eql({foo: 'bar', baz: [{qu: 'ux'}]})
     end
 
     it 'should respond to requests' do
