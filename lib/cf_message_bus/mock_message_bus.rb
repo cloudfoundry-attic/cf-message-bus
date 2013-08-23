@@ -1,10 +1,14 @@
 module CfMessageBus
   class MockMessageBus
+    attr_reader :published_messages, :published_synchronous_messages
+
     def initialize(config = {})
       @logger = config[:logger]
       @subscriptions = Hash.new { |hash, key| hash[key] = [] }
       @requests = {}
+      @synchronous_requests = {}
       @published_messages = []
+      @published_synchronous_messages = []
     end
 
     def subscribe(subject, opts = {}, &blk)
@@ -27,6 +31,8 @@ module CfMessageBus
     end
 
     def synchronous_request(subject, data=nil, options={})
+      @published_synchronous_messages.push(subject: subject, data: data, options: options)
+      @synchronous_requests[subject]
     end
 
     def unsubscribe(subscription_id)
@@ -42,6 +48,10 @@ module CfMessageBus
       true
     end
 
+    def respond_to_synchronous_request(request_subject, data)
+      @synchronous_requests[request_subject] = data
+    end
+
     def respond_to_request(request_subject, data)
       block = @requests.fetch(request_subject) { lambda { |data| nil } }
       block.call(data)
@@ -49,10 +59,6 @@ module CfMessageBus
 
     def do_recovery
       @recovery.call if @recovery
-    end
-
-    def published_messages
-      @published_messages
     end
 
     def clear_published_messages
@@ -64,7 +70,18 @@ module CfMessageBus
     end
 
     def has_published_with_message?(subject, message)
-      @published_messages.find { |publication| publication[:subject] == subject && publication[:message] == message }
+      @published_messages.find do |publication|
+        publication[:subject] == subject &&
+          publication[:message] == message
+      end
+    end
+
+    def has_requested_synchronous_messages?(subject, data=nil, options={})
+      @published_synchronous_messages.find do |publication|
+        publication[:subject] == subject &&
+          publication[:data] == data &&
+          publication[:options] == options
+      end
     end
   end
 end

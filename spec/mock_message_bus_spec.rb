@@ -37,6 +37,22 @@ module CfMessageBus
       expect(bus.published_messages[1]).to eq({subject: "bar", message: {baz: :quux}, callback: monkey})
     end
 
+    it 'should record published synchronous messages' do
+      response = bus.synchronous_request("foo", {data: 1}, {option: :option})
+      expect(response).to be_nil
+
+      bus.respond_to_synchronous_request("foo", "bar")
+      response = bus.synchronous_request("foo", {data: 2}, {option: :option})
+      expect(response).to eq "bar"
+
+      expect(bus.published_synchronous_messages).to eq([
+        {subject: "foo", data: {data: 1}, options: {option: :option}},
+        {subject: "foo", data: {data: 2}, options: {option: :option}}
+      ])
+
+      expect(bus).to have_requested_synchronous_messages("foo", {data: 1}, {option: :option})
+    end
+
     it 'should clear published messages when asked' do
       bus.publish("foo")
       monkey = lambda { "I'm a monkey block" }
