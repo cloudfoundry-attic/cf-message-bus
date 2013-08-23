@@ -10,7 +10,7 @@ module CfMessageBus
     let(:bus) { MessageBus.new(uri: bus_uri, logger: logger) }
     let(:logger) { double(:logger, info: nil) }
     let(:fake_promise) { double(:promise) }
-    let(:msg) { { foo: "bar" } }
+    let(:msg) { {"foo" => "bar"} }
     let(:msg_json) { JSON.dump(msg) }
 
     before do
@@ -161,7 +161,7 @@ module CfMessageBus
     end
 
     describe 'requesting information synchronously' do
-      let(:msg2) { { baz: 'quux'} }
+      let(:msg2) { {'baz' => 'quux'} }
       let(:msg2_json) { JSON.dump(msg2) }
       it 'should schedule onto the EM loop to make the request' do
         EM.should_receive(:schedule_sync).and_yield(fake_promise)
@@ -182,13 +182,13 @@ module CfMessageBus
 
       it 'should parse json into objects' do
         mock_nats.should_receive(:request).with('foo', nil, max: 1).and_yield(msg_json, nil)
-        fake_promise.should_receive(:deliver).with([{ foo: 'bar' }])
+        fake_promise.should_receive(:deliver).with([{'foo' => 'bar'}])
         bus.synchronous_request('foo', nil)
       end
 
       it 'should wait to deliver the promise if multiple results are expected' do
         mock_nats.should_receive(:request).with('foo', nil, max: 2).and_yield(msg_json, nil).and_yield(msg2_json, nil)
-        fake_promise.should_receive(:deliver).with([msg, {baz: 'quux'}])
+        fake_promise.should_receive(:deliver).with([msg, {'baz' => 'quux'}])
         bus.synchronous_request('foo', nil, result_count: 2)
       end
 

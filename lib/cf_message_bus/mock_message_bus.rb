@@ -13,9 +13,7 @@ module CfMessageBus
     end
 
     def publish(subject, message = nil, &callback)
-      @subscriptions[subject].each do |subscription|
-        subscription.call(symbolize_keys(message))
-      end
+      @subscriptions[subject].each { |subscription| subscription.call(message) }
 
       @published_messages.push({subject: subject, message: message, callback: callback})
 
@@ -46,7 +44,7 @@ module CfMessageBus
 
     def respond_to_request(request_subject, data)
       block = @requests.fetch(request_subject) { lambda { |data| nil } }
-      block.call(symbolize_keys(data))
+      block.call(data)
     end
 
     def do_recovery
@@ -67,22 +65,6 @@ module CfMessageBus
 
     def has_published_with_message?(subject, message)
       @published_messages.find { |publication| publication[:subject] == subject && publication[:message] == message }
-    end
-
-    private
-
-    def symbolize_keys(object)
-      case object
-      when Array
-        object.map {|k| symbolize_keys(k) }
-      when Hash
-        object.inject({}) do |memo, (key, value)|
-          memo[key.to_sym] = symbolize_keys(value)
-          memo
-        end
-      else
-        object
-      end
     end
   end
 end

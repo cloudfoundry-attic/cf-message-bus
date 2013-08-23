@@ -68,7 +68,7 @@ module CfMessageBus
       expect(received_data).to be_nil
 
       bus.publish("foo", {'foo' => 'bar', 'baz' => [{'qu' => 'ux'}]})
-      expect(received_data).to eql({foo: 'bar', baz: [{qu: 'ux'}]})
+      expect(received_data).to eql({'foo' => 'bar', 'baz' => [{'qu' => 'ux'}]})
     end
 
     it 'should respond to requests' do
@@ -90,7 +90,7 @@ module CfMessageBus
       expect(received_data).to be_nil
 
       bus.respond_to_request('hey guys', {'foo' => 'bar'})
-      expect(received_data).to eql({foo: 'bar'})
+      expect(received_data).to eql({'foo' => 'bar'})
     end
 
     it 'should allow unsubscribing from requests' do

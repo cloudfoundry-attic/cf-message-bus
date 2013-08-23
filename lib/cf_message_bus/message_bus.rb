@@ -115,7 +115,7 @@ module CfMessageBus
     end
 
     def process_message(msg, inbox, &block)
-      payload = JSON.parse(msg, symbolize_keys: true)
+      payload = JSON.parse(msg)
       block.yield(payload, inbox)
     rescue => e
       @logger.error "exception parsing json: '#{msg}' '#{e.inspect}'"
