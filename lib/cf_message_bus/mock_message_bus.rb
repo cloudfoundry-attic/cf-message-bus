@@ -17,14 +17,16 @@ module CfMessageBus
     end
 
     def publish(subject, message = nil, &callback)
-      @subscriptions[subject].each { |subscription| subscription.call(message) }
+      @subscriptions[subject].each do |subscription|
+        subscription.call(stringify_keys(message))
+      end
 
       @published_messages.push({subject: subject, message: message, callback: callback})
 
       callback.call if callback
     end
 
-    def request(subject, data=nil, options={}, &blk)
+    def request(subject, data=nil, _={}, &blk)
       @requests[subject] = blk
       publish(subject, data)
       subject
@@ -32,7 +34,7 @@ module CfMessageBus
 
     def synchronous_request(subject, data=nil, options={})
       @published_synchronous_messages.push(subject: subject, data: data, options: options)
-      @synchronous_requests[subject]
+      stringify_keys(@synchronous_requests[subject])
     end
 
     def unsubscribe(subscription_id)
@@ -54,7 +56,7 @@ module CfMessageBus
 
     def respond_to_request(request_subject, data)
       block = @requests.fetch(request_subject) { lambda { |data| nil } }
-      block.call(data)
+      block.call(stringify_keys(data))
     end
 
     def do_recovery
@@ -81,6 +83,22 @@ module CfMessageBus
         publication[:subject] == subject &&
           publication[:data] == data &&
           publication[:options] == options
+      end
+    end
+
+    private
+
+    def stringify_keys(object)
+      case object
+      when Array
+        object.map {|k| stringify_keys(k) }
+      when Hash
+        object.inject({}) do |memo, (key, value)|
+          memo[key.to_s] = stringify_keys(value)
+          memo
+        end
+      else
+        object
       end
     end
   end

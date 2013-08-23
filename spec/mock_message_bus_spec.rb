@@ -41,9 +41,9 @@ module CfMessageBus
       response = bus.synchronous_request("foo", {data: 1}, {option: :option})
       expect(response).to be_nil
 
-      bus.respond_to_synchronous_request("foo", "bar")
+      bus.respond_to_synchronous_request("foo", {bar: "baz"})
       response = bus.synchronous_request("foo", {data: 2}, {option: :option})
-      expect(response).to eq "bar"
+      expect(response).to eq("bar" => "baz")
 
       expect(bus.published_synchronous_messages).to eq([
         {subject: "foo", data: {data: 1}, options: {option: :option}},
@@ -75,7 +75,7 @@ module CfMessageBus
       expect(bus).not_to have_published_with_message('foo', 'umbrella')
     end
 
-    it 'should symbolize keys to the subscriber' do
+    it 'should stringify keys to the subscriber' do
       received_data = nil
 
       bus.subscribe("foo") do |data|
@@ -83,7 +83,7 @@ module CfMessageBus
       end
       expect(received_data).to be_nil
 
-      bus.publish("foo", {'foo' => 'bar', 'baz' => [{'qu' => 'ux'}]})
+      bus.publish("foo", {foo: 'bar', baz: [{qu: 'ux'}]})
       expect(received_data).to eql({'foo' => 'bar', 'baz' => [{'qu' => 'ux'}]})
     end
 
@@ -105,7 +105,7 @@ module CfMessageBus
       end
       expect(received_data).to be_nil
 
-      bus.respond_to_request('hey guys', {'foo' => 'bar'})
+      bus.respond_to_request('hey guys', {foo: 'bar'})
       expect(received_data).to eql({'foo' => 'bar'})
     end
 
