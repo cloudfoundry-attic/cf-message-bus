@@ -59,12 +59,6 @@ shared_examples :a_message_bus do
       message_bus.unsubscribe('subscription id')
     end
 
-    it 'should be able to recover' do
-      message_bus.recover do
-        raise "not actually called here"
-      end
-    end
-
     it 'should know if it is connected' do
       message_bus.connected?
     end

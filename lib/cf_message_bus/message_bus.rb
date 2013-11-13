@@ -10,8 +10,6 @@ module CfMessageBus
       @logger = config[:logger]
       @internal_bus = MessageBusFactory.message_bus(config[:uri])
       @subscriptions = {}
-      @internal_bus.on_reconnect { start_internal_bus_recovery }
-      @recovery_callback = lambda {}
     end
 
     def subscribe(subject, options = {}, &block)
@@ -28,10 +26,6 @@ module CfMessageBus
       EM.schedule do
         internal_bus.publish(subject, encode(message), &callback)
       end
-    end
-
-    def recover(&block)
-      @recovery_callback = block
     end
 
     def request(subject, data = nil, options = {}, &block)
@@ -90,19 +84,6 @@ module CfMessageBus
         block.yield(parsed_data, inbox)
       rescue => e
         @logger.error "exception processing #{type} for: '#{subject}' '#{parsed_data.inspect}' \n#{e.inspect}\n #{e.backtrace.join("\n")}"
-      end
-    end
-
-    def start_internal_bus_recovery
-      EM.defer do
-        @logger.info("Reconnected to internal_bus.")
-
-        @recovery_callback.call
-
-        @subscriptions.each do |subject, options|
-          @logger.info("Resubscribing to #{subject}")
-          subscribe(subject, options[0], &options[1])
-        end
       end
     end
 

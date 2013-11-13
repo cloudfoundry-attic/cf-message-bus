@@ -210,30 +210,6 @@ module CfMessageBus
       end
     end
 
-    context 'after nats comes back up' do
-      it 'should resubscribe' do
-        bus.subscribe("first")
-        bus.subscribe("second")
-        bus.subscribe("third")
-
-        mock_nats.should_receive(:subscribe).with("first", {})
-        mock_nats.should_receive(:subscribe).with("second", {})
-        mock_nats.should_receive(:subscribe).with("third", {})
-
-        mock_nats.reconnect!
-      end
-
-      it 'should call the recovery callbacks' do
-        callback = double(called: true)
-        callback.should_receive(:called)
-        bus.recover do
-          callback.called
-        end
-
-        mock_nats.reconnect!
-      end
-    end
-
     context 'connected?' do
       it 'should proxy to the internal bus' do
         mock_nats.stub(:connected?).and_return(:something_else)
