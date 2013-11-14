@@ -20,7 +20,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "rspec"
 
   gem.add_dependency "eventmachine", "~> 1.0.0"
-  gem.add_dependency "nats", "= 0.4.26"
+  gem.add_dependency "nats", ">= 0.5.0.beta.12", "< 0.6"
   gem.add_dependency "vcap-concurrency" # in the gemfile
   gem.add_dependency "yajl-ruby"
   gem.add_dependency "vcap-concurrency"
