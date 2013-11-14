@@ -8,7 +8,10 @@ module CfMessageBus
   class MessageBus
     def initialize(config)
       @logger = config[:logger]
-      @internal_bus = MessageBusFactory.message_bus(config[:uri])
+
+      @internal_bus = MessageBusFactory.message_bus(
+        config[:servers] || config[:uris] || config[:uri])
+
       @subscriptions = {}
     end
 
@@ -44,6 +47,7 @@ module CfMessageBus
           run_handler(block, {timeout: true}, nil, subject, 'timeout')
         end
       end
+
       subscription_id
     end
 

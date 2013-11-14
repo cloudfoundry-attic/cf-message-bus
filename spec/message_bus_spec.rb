@@ -28,6 +28,16 @@ module CfMessageBus
       MessageBus.new(uri: bus_uri)
     end
 
+    it "passes :servers along to the factory" do
+      MessageBusFactory.should_receive(:message_bus).with(bus_uri).and_return(mock_nats)
+      MessageBus.new(servers: bus_uri)
+    end
+
+    it "passes :uris along to the factory" do
+      MessageBusFactory.should_receive(:message_bus).with(bus_uri).and_return(mock_nats)
+      MessageBus.new(uris: bus_uri)
+    end
+
     describe 'subscribing' do
       it 'should subscribe on nats and parse json' do
         mock_nats.should_receive(:subscribe).with("foo", {}).and_yield(msg_json, nil)
