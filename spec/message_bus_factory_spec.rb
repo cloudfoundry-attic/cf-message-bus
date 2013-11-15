@@ -20,5 +20,10 @@ module CfMessageBus
       ::NATS.should_receive(:connect).with(hash_including(max_reconnect_attempts: Float::INFINITY))
       get_bus
     end
+
+    it 'configures to not shuffle servers (workaround for nats lib bug)' do
+      ::NATS.should_receive(:connect).with(hash_including(dont_randomize_servers: true))
+      get_bus
+    end
   end
 end
