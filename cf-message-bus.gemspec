@@ -23,5 +23,4 @@ Gem::Specification.new do |gem|
   gem.add_dependency "nats", ">= 0.5.0.beta.12", "< 0.6"
   gem.add_dependency "vcap-concurrency" # in the gemfile
   gem.add_dependency "yajl-ruby"
-  gem.add_dependency "vcap-concurrency"
 end
