@@ -30,11 +30,13 @@ module CfMessageBus
 
     it 'should record published messages' do
       bus.publish("foo")
+      bus.publish("bar", nil, "inbox")
       monkey = lambda { "I'm a monkey block" }
-      bus.publish("bar", {baz: :quux}, &monkey)
+      bus.publish("baz", {baz: :quux}, &monkey)
 
-      expect(bus.published_messages[0]).to eq({subject: "foo", message: nil, callback: nil})
-      expect(bus.published_messages[1]).to eq({subject: "bar", message: {baz: :quux}, callback: monkey})
+      expect(bus.published_messages[0]).to eq({subject: "foo", message: nil, inbox: nil, callback: nil})
+      expect(bus.published_messages[1]).to eq({subject: "bar", message: nil, inbox: "inbox", callback: nil})
+      expect(bus.published_messages[2]).to eq({subject: "baz", message: {baz: :quux}, inbox: nil, callback: monkey})
     end
 
     it 'should record published synchronous messages' do

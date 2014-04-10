@@ -16,12 +16,12 @@ module CfMessageBus
       subject
     end
 
-    def publish(subject, message = nil, &callback)
+    def publish(subject, message = nil, inbox = nil, &callback)
       @subscriptions[subject].each do |subscription|
         subscription.call(stringify_keys(message))
       end
 
-      @published_messages.push({subject: subject, message: message, callback: callback})
+      @published_messages.push({subject: subject, message: message, inbox: inbox, callback: callback})
 
       callback.call if callback
     end
