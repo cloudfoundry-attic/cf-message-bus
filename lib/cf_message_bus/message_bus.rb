@@ -25,9 +25,9 @@ module CfMessageBus
       end
     end
 
-    def publish(subject, message = nil, &callback)
+    def publish(subject, message = nil, inbox=nil, &callback)
       EM.schedule do
-        internal_bus.publish(subject, encode(message), &callback)
+        internal_bus.publish(subject, encode(message), inbox, &callback)
       end
     end
 
