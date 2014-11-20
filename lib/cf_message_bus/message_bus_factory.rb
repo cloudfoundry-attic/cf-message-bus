@@ -6,7 +6,7 @@ module CfMessageBus
       ::NATS.connect(
         uri: uri,
         max_reconnect_attempts: Float::INFINITY,
-        dont_randomize_servers: true,
+        dont_randomize_servers: false,
       )
     end
   end
