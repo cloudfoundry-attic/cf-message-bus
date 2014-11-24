@@ -25,7 +25,7 @@ module CfMessageBus
       bus.publish("foo") do
         called = true
       end
-      expect(called).to be_true
+      expect(called).to be_truthy
     end
 
     it 'should record published messages' do
@@ -147,10 +147,10 @@ module CfMessageBus
       bus.recover do
         called = true
       end
-      expect(called).to be_false
+      expect(called).to be_falsey
 
       bus.do_recovery
-      expect(called).to be_true
+      expect(called).to be_truthy
     end
   end
 end

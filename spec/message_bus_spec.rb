@@ -98,7 +98,7 @@ module CfMessageBus
         bus.publish('foo', %w[foo bar baz]) do
           called = true
         end
-        expect(called).to be_true
+        expect(called).to be_truthy
       end
 
       it 'supports inbox' do
@@ -107,7 +107,7 @@ module CfMessageBus
         bus.publish('foo', %w[foo bar baz], 'inbox') do
           called = true
         end
-        expect(called).to be_true
+        expect(called).to be_truthy
       end
     end
 
@@ -164,9 +164,9 @@ module CfMessageBus
         called = false
         bus.request('foo', nil, timeout: 10) do |response|
           called = true
-          expect(response[:timeout]).to be_true
+          expect(response[:timeout]).to be_truthy
         end
-        expect(called).to be_true
+        expect(called).to be_truthy
       end
 
       it 'should handle errors in timeouts' do
