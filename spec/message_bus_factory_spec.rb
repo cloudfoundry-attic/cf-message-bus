@@ -22,7 +22,7 @@ module CfMessageBus
     end
 
     it 'configures to not shuffle servers (workaround for nats lib bug)' do
-      ::NATS.should_receive(:connect).with(hash_including(dont_randomize_servers: true))
+      ::NATS.should_receive(:connect).with(hash_including(dont_randomize_servers: false))
       get_bus
     end
   end
