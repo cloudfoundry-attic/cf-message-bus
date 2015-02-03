@@ -17,7 +17,7 @@ module CfMessageBus
     end
 
     def publish(subject, message = nil, inbox = nil, &callback)
-      @subscriptions[subject].each do |subscription|
+      @subscriptions.fetch(subject, []).each do |subscription|
         subscription.call(stringify_keys(message))
       end
 
@@ -84,6 +84,10 @@ module CfMessageBus
           publication[:data] == data &&
           publication[:options] == options
       end
+    end
+
+    def reset
+      @subscriptions = {}
     end
 
     private

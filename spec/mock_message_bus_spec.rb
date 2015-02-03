@@ -152,5 +152,14 @@ module CfMessageBus
       bus.do_recovery
       expect(called).to be_truthy
     end
+
+    it 'knows how to clean up subscribers' do
+      bus.subscribe('hiya') do
+        raise 'do not call'
+      end
+
+      bus.reset
+      bus.publish('hiya')
+    end
   end
 end
