@@ -17,7 +17,7 @@ module CfMessageBus
     end
 
     it 'should setup infinite retry' do
-      ::NATS.should_receive(:connect).with(hash_including(max_reconnect_attempts: Float::INFINITY))
+      ::NATS.should_receive(:connect).with(hash_including(max_reconnect_attempts: -1))
       get_bus
     end
 
