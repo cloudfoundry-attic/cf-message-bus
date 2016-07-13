@@ -19,8 +19,8 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "bundler", "~> 1.3"
   gem.add_development_dependency "rspec"
 
-  gem.add_dependency "eventmachine", "~> 1.0.0"
-  gem.add_dependency "nats", ">= 0.5.0", "< 0.6"
+  gem.add_dependency "eventmachine", "~> 1.0"
+  gem.add_dependency "nats", ">= 0.5.0", "~> 0.7"
   gem.add_dependency "vcap-concurrency" # in the gemfile
   gem.add_dependency "yajl-ruby"
 end
