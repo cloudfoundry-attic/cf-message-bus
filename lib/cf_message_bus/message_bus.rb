@@ -9,8 +9,7 @@ module CfMessageBus
     def initialize(config)
       @logger = config[:logger]
 
-      @internal_bus = MessageBusFactory.message_bus(
-        config[:servers] || config[:uris] || config[:uri])
+      @internal_bus = MessageBusFactory.message_bus(config)
 
       @subscriptions = {}
     end

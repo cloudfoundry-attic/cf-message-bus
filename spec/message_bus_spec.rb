@@ -7,14 +7,24 @@ module CfMessageBus
   describe MessageBus do
     let(:mock_nats) { MockNATS.new }
     let(:bus_uri) { "some message bus uri" }
-    let(:bus) { MessageBus.new(uri: bus_uri, logger: logger) }
+    let(:max_reconnect_attempts) { 10 }
+    let(:dont_randomize_servers) { true }
     let(:logger) { double(:logger, info: nil) }
+    let(:config) {
+      {
+        uri: bus_uri,
+        max_reconnect_attempts: max_reconnect_attempts,
+        dont_randomize_servers: dont_randomize_servers,
+        logger: logger
+      }
+    }
+    let(:bus) { MessageBus.new(config) }
     let(:fake_promise) { double(:promise) }
     let(:msg) { {"foo" => "bar"} }
     let(:msg_json) { JSON.dump(msg) }
 
     before do
-      MessageBusFactory.stub(:message_bus).with(bus_uri).and_return(mock_nats)
+      MessageBusFactory.stub(:message_bus).with(config).and_return(mock_nats)
       EM.stub(:schedule).and_yield
       EM.stub(:defer).and_yield
       EM.stub(:schedule_sync).and_yield(fake_promise)
@@ -24,18 +34,8 @@ module CfMessageBus
     it_behaves_like :a_message_bus
 
     it 'should get the internal message bus from the factory' do
-      MessageBusFactory.should_receive(:message_bus).with(bus_uri).and_return(mock_nats)
-      MessageBus.new(uri: bus_uri)
-    end
-
-    it "passes :servers along to the factory" do
-      MessageBusFactory.should_receive(:message_bus).with(bus_uri).and_return(mock_nats)
-      MessageBus.new(servers: bus_uri)
-    end
-
-    it "passes :uris along to the factory" do
-      MessageBusFactory.should_receive(:message_bus).with(bus_uri).and_return(mock_nats)
-      MessageBus.new(uris: bus_uri)
+      MessageBusFactory.should_receive(:message_bus).with(config).and_return(mock_nats)
+      MessageBus.new(config)
     end
 
     describe 'subscribing' do
