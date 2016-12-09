@@ -8,7 +8,7 @@ shared_examples :a_message_bus do
     subject(:message_bus) { described_class.new(config) }
 
     before do
-      CfMessageBus::MessageBusFactory.stub(:message_bus).with(bus_uri).and_return(CfMessageBus::MockNATS.new)
+      CfMessageBus::MessageBusFactory.stub(:message_bus).with(config).and_return(CfMessageBus::MockNATS.new)
     end
 
     it 'should be able to subscribe' do
